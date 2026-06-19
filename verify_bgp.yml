@@ -1,0 +1,22 @@
+# verify_bgp.yml
+---
+- name: Network Pre/Post Change Validation
+  hosts: cisco_routers
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    - name: Gather BGP Summary Info
+      cisco.ios.ios_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_output
+
+    - name: Save Routing State to Local Controller
+      ansible.builtin.copy:
+        content: "{{ bgp_output.stdout[0] }}"
+        dest: "./bgp_reports/bgp_status_{{ inventory_hostname }}.txt"
+
+    - name: Confirm Status
+      ansible.builtin.debug:
+        msg: "✅ BGP validation report generated successfully for {{ inventory_hostname }}."
